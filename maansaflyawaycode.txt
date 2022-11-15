@@ -1,0 +1,665 @@
+package com.admin;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+/**
+ * Servlet implementation class AddFlight
+ */
+@WebServlet("/AddFlight")
+public class AddFlight extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+       
+    /**
+     * @see HttpServlet#HttpServlet()
+     */
+    public AddFlight() {
+        super();
+        // TODO Auto-generated constructor stub
+    }
+
+	/**
+	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
+	 */
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		PrintWriter pw=response.getWriter();
+		try{
+		Class.forName("com.mysql.cj.jdbc.Driver");
+		String user="root";
+		String password="root12345";
+		String url="jdbc:mysql://localhost:3306/flyaway";
+		Connection con=DriverManager.getConnection(url,user,password);
+		if(!request.getParameter("source").equals(request.getParameter("destination"))) {
+		PreparedStatement ps=con.prepareStatement("insert into flights(source,destination,time,duration,price) values(?,?,?,?,?)");
+		ps.setString(1, request.getParameter("source"));
+		ps.setString(2, request.getParameter("destination"));
+		ps.setString(3, request.getParameter("time"));
+		ps.setInt(4, Integer.parseInt(request.getParameter("duration")));
+		ps.setInt(5, Integer.parseInt(request.getParameter("price")));
+		ps.executeUpdate();
+		ps.close();
+		request.getRequestDispatcher("add.html").include(request, response);
+		pw.println("<center><SPAN style='color:green'>Flight Added Successfully</SPAN></center>");
+		}
+		else {
+			request.getRequestDispatcher("add.html").include(request, response);
+			pw.println("<center><SPAN style='color:red'>Source And Destination cannot be same</SPAN></center>");
+		}
+		}
+		catch (Exception e) {
+			
+			pw.print(e);
+		}
+	}
+
+}
+
+package com.admin;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.Statement;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+/**
+ * Servlet implementation class Admin
+ */
+@WebServlet("/Admin")
+public class Admin extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+    /**
+     * Default constructor. 
+     */
+    public Admin() {
+        // TODO Auto-generated constructor stub
+    }
+
+	/**
+	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
+	 */
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		PrintWriter pw=response.getWriter();
+		try{
+		Class.forName("com.mysql.cj.jdbc.Driver");
+		String user="root";
+		String password="root12345";
+		String url="jdbc:mysql://localhost:3306/flyaway";
+		Connection con=DriverManager.getConnection(url,user,password);
+		PreparedStatement ps=con.prepareStatement("select * from admin");
+		ResultSet rs=ps.executeQuery();
+		if(rs.next()) {
+			if(request.getParameter("username").equals(rs.getString(1))&&request.getParameter("password").equals(rs.getString(2))) {
+				request.getRequestDispatcher("1.html").include(request, response);
+			}
+			else {
+				request.getRequestDispatcher("index.html").include(request, response);
+				pw.println("<h3 align='right'><SPAN style='color:red'>Invalid Credentials</SPAN></h3>");
+			}
+		}
+		
+	}
+		catch (Exception e) {
+			
+			pw.print(e);
+		}
+	}
+}
+
+
+
+
+package com.admin;
+
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.List;
+
+import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+/**
+ * Servlet implementation class Book
+ */
+@WebServlet("/Book")
+public class Book extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+       
+    /**
+     * @see HttpServlet#HttpServlet()
+     */
+    public Book() {
+        super();
+        // TODO Auto-generated constructor stub
+    }
+
+	/**
+	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
+	 */
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		try {
+			List<Flights> flightlist=FlightsDB.getFlightsList();
+			request.setAttribute("flightlist", flightlist);
+		} catch (ClassNotFoundException | SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		RequestDispatcher dispatcher=request.getRequestDispatcher("booking.jsp");
+		dispatcher.forward(request, response);
+	}
+
+}
+package com.admin;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+/**
+ * Servlet implementation class Change
+ */
+@WebServlet("/Change")
+public class Change extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+       
+    /**
+     * @see HttpServlet#HttpServlet()
+     */
+    public Change() {
+        super();
+        // TODO Auto-generated constructor stub
+    }
+
+	/**
+	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
+	 */
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		PrintWriter pw=response.getWriter();
+		try{
+		Class.forName("com.mysql.cj.jdbc.Driver");
+		String user="root";
+		String password="root12345";
+		String url="jdbc:mysql://localhost:3306/flyaway";
+		Connection con=DriverManager.getConnection(url,user,password);
+		PreparedStatement ps=con.prepareStatement("select * from admin");
+		ResultSet rs=ps.executeQuery();
+		if(rs.next()) {
+			if(request.getParameter("newpassword").equals(request.getParameter("conpassword"))&&request.getParameter("oldpassword").equals(rs.getString(2))&&!request.getParameter("newpassword").equals(rs.getString(2))) {
+				PreparedStatement ps1=con.prepareStatement("update admin set Password=? where Username=?");
+				ps1.setString(1, request.getParameter("newpassword"));
+				ps1.setString(2, "AtharvC");
+				ps1.executeUpdate();
+				ps1.close();
+				request.getRequestDispatcher("cp.html").include(request, response);
+				pw.println("<center><SPAN style='color:green'>Password Changed Successfully</SPAN></center>");
+			}
+			else {
+				request.getRequestDispatcher("cp.html").include(request, response);
+				pw.println("<center><SPAN style='color:red'>Invalid Credentials</SPAN></center>");
+			}
+		}
+		
+	}
+		catch (Exception e) {
+			
+			pw.print(e);
+		}
+	
+	}
+
+}
+package com.admin;
+
+public class Customer {
+private String name;
+private long phone;
+private int flightno;
+private long cardno;
+private String cardname;
+public String getName() {
+	return name;
+}
+public void setName(String name) {
+	this.name = name;
+}
+public long getPhone() {
+	return phone;
+}
+public void setPhone(long phone) {
+	this.phone = phone;
+}
+public int getFlightno() {
+	return flightno;
+}
+public void setFlightno(int flightno) {
+	this.flightno = flightno;
+}
+public long getCardno() {
+	return cardno;
+}
+public void setCardno(long cardno) {
+	this.cardno = cardno;
+}
+public String getCardname() {
+	return cardname;
+}
+public void setCardname(String cardname) {
+	this.cardname = cardname;
+}
+@Override
+public String toString() {
+	return "Customer [name=" + name + ", phone=" + phone + ", flightno=" + flightno + ", cardno=" + cardno
+			+ ", cardname=" + cardname + "]";
+}
+
+
+}
+package com.admin;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+/**
+ * Servlet implementation class Delete
+ */
+@WebServlet("/Delete")
+public class Delete extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+       
+    /**
+     * @see HttpServlet#HttpServlet()
+     */
+    public Delete() {
+        super();
+        // TODO Auto-generated constructor stub
+    }
+
+	/**
+	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
+	 */
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		PrintWriter pw=response.getWriter();
+		try{
+		Class.forName("com.mysql.cj.jdbc.Driver");
+		String user="root";
+		String password="root12345";
+		String url="jdbc:mysql://localhost:3306/flyaway";
+		Connection con=DriverManager.getConnection(url,user,password);
+		
+		PreparedStatement ps=con.prepareStatement("delete from flights where flightnumber=?");
+		ps.setString(1, request.getParameter("flightnos"));
+		ps.executeUpdate();
+		ps.close();
+		request.getRequestDispatcher("show-flights.jsp").include(request, response);
+		pw.println("<center><SPAN style='color:green'>Flight Deleted Successfully or entered Flight Number doesn't exist</SPAN></center>");
+		
+		}
+		catch (Exception e) {
+			
+			pw.print(e);
+		}
+	}
+
+}
+package com.admin;
+
+public class Flights {
+	private int flightNumber;
+	private String source;
+	private String destination;
+	private String time;
+	private int duration;
+	private int price;
+	public int getFlightNumber() {
+		return flightNumber;
+	}
+	public void setFlightNumber(int flightNumber) {
+		this.flightNumber = flightNumber;
+	}
+	public String getSource() {
+		return source;
+	}
+	public void setSource(String source) {
+		this.source = source;
+	}
+	public String getDestination() {
+		return destination;
+	}
+	public void setDestination(String destination) {
+		this.destination = destination;
+	}
+	public String getTime() {
+		return time;
+	}
+	public void setTime(String time) {
+		this.time = time;
+	}
+	public int getDuration() {
+		return duration;
+	}
+	public void setDuration(int duration) {
+		this.duration = duration;
+	}
+	public int getPrice() {
+		return price;
+	}
+	public void setPrice(int price) {
+		this.price = price;
+	}
+	public Flights(int flightNumber, String source, String destination, String time, int duration, int price) {
+		this.flightNumber = flightNumber;
+		this.source = source;
+		this.destination = destination;
+		this.time = time;
+		this.duration = duration;
+		this.price = price;
+	}
+	
+}
+package com.admin;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
+
+
+public class FlightsDB {
+	public static List<Flights> getFlightsList() throws ClassNotFoundException, SQLException{
+		String url="jdbc:mysql://localhost:3306/flyaway";
+		String userName="root";
+		String password="root12345";
+		ArrayList<Flights> flights=new ArrayList<>();
+		Class.forName("com.mysql.cj.jdbc.Driver");
+		Connection con=DriverManager.getConnection(url,userName,password);
+		Statement stmt=con.createStatement();
+		ResultSet rs=stmt.executeQuery("select * from flights");
+		while(rs.next()) {
+			int flightnumber=rs.getInt(1);
+			String source=rs.getString(2);
+			String destination=rs.getString(3);
+			String time=rs.getString(4);
+			int duration=rs.getInt(5);
+			int price=rs.getInt(6);
+			Flights f=new Flights(flightnumber,source,destination,time,duration,price);
+			flights.add(f);
+		}
+		return flights;
+	}
+}
+
+package com.admin;
+
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.List;
+
+import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+/**
+ * Servlet implementation class FlightsServ
+ */
+@WebServlet("/FlightsServ")
+public class FlightsServ extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+       
+    /**
+     * @see HttpServlet#HttpServlet()
+     */
+    public FlightsServ() {
+        super();
+        // TODO Auto-generated constructor stub
+    }
+
+	/**
+	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
+	 */
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		try {
+			List<Flights> flightlist=FlightsDB.getFlightsList();
+			request.setAttribute("flightlist", flightlist);
+		} catch (ClassNotFoundException | SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		RequestDispatcher dispatcher=request.getRequestDispatcher("show-flights.jsp");
+		dispatcher.forward(request, response);
+
+	}
+
+}
+package com.admin;
+
+import java.io.IOException;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+
+
+/**
+ * Servlet implementation class Payment
+ */
+@WebServlet("/Payment")
+public class Payment extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+       
+    /**
+     * @see HttpServlet#HttpServlet()
+     */
+    public Payment() {
+        super();
+        // TODO Auto-generated constructor stub
+    }
+
+	/**
+	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
+	 */
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		Customer c=new Customer();
+		HttpSession session=request.getSession();
+		c.setFlightno(Integer.parseInt(request.getParameter("flight")));
+		c.setName(request.getParameter("name"));
+		c.setPhone(Long.parseLong(request.getParameter("phone")));
+		session.setAttribute("customer", c);
+		response.sendRedirect("payment.html");
+	}
+
+}
+package com.admin;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+/**
+ * Servlet implementation class PaySuccess
+ */
+@WebServlet("/PaySuccess")
+public class PaySuccess extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+       
+    /**
+     * @see HttpServlet#HttpServlet()
+     */
+    public PaySuccess() {
+        super();
+        // TODO Auto-generated constructor stub
+    }
+
+	/**
+	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
+	 */
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		Flights f;
+		PrintWriter pw=response.getWriter();
+		HttpSession session =request.getSession(false);
+		Customer u=(Customer) session.getAttribute("customer");
+		Customer u2=(Customer) request.getAttribute("customer");
+		u.setCardname(u2.getCardname());
+		u.setCardno(u2.getCardno());
+		
+		try{
+			Class.forName("com.mysql.cj.jdbc.Driver");
+			String user="root";
+			String password="root12345";
+			String url="jdbc:mysql://localhost:3306/flyaway";
+			Connection con=DriverManager.getConnection(url,user,password);
+			PreparedStatement ps=con.prepareStatement("select * from flights where flightnumber=?");
+			ps.setInt(1, u.getFlightno());
+			ResultSet rs=ps.executeQuery();
+			if(rs.next()) {
+				f=new Flights(rs.getInt(1),rs.getString(2),rs.getString(3),rs.getString(4),rs.getInt(5),rs.getInt(6));
+				pw.print("<button><a href='index.html'>Home</a></button>");
+				pw.print("<h1 align='center'>Congratualtions you have Successfully booked your Ticket</h1><br>");
+				pw.print("<h2 align='center'>Details are as below</h2><br>");
+				pw.print("<center> Name:"+u.getName()+"</center>");
+				pw.print("<center> Flight Number:"+u.getFlightno()+"</center>");
+				pw.print("<center> Source:"+f.getSource()+"</center>");
+				pw.print("<center> Destination:"+f.getDestination()+"</center>");
+				pw.print("<center> Time:"+f.getTime()+"</center>");
+				pw.print("<center>Payment Details are as Follows:</center>");
+				pw.print("<center> Price:"+f.getPrice()+"</center>");
+				pw.print("<center> CardNumber:"+u.getCardno()+"</center>");
+				pw.print("<center> Name of CardHolder:"+u.getCardname()+"</center><br>");
+				pw.print("<center>Payment Status:<span style='color:green'>Successful</span></center>");
+			}
+			
+		}
+			catch (Exception e) {
+				
+				pw.print(e);
+			}
+		
+	}
+
+}
+package com.admin;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+
+import javax.servlet.Filter;
+import javax.servlet.FilterChain;
+import javax.servlet.FilterConfig;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+import javax.servlet.annotation.WebFilter;
+import javax.servlet.http.HttpFilter;
+import javax.servlet.http.HttpSession;
+
+
+
+/**
+ * Servlet Filter implementation class Validation
+ */
+@WebFilter("/Validation")
+public class Validation extends HttpFilter implements Filter {
+       
+    /**
+     * @see HttpFilter#HttpFilter()
+     */
+    public Validation() {
+        super();
+        // TODO Auto-generated constructor stub
+    }
+
+	/**
+	 * @see Filter#destroy()
+	 */
+	public void destroy() {
+		// TODO Auto-generated method stub
+	}
+
+	/**
+	 * @see Filter#doFilter(ServletRequest, ServletResponse, FilterChain)
+	 */
+	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+		String cardno=request.getParameter("cardno");
+		if(cardno==null||!cardno.matches("[0-9]{12}")||!request.getParameter("cvv").matches("[0-9]{3}")){
+			PrintWriter pw=response.getWriter();
+			request.getRequestDispatcher("payment.html").include(request, response);
+			pw.println("<center><SPAN style='color:red'>Invalid Credentials</SPAN></center>");
+		}
+		else {
+			Customer c=new Customer();
+			c.setCardname(request.getParameter("name1"));
+			c.setCardno(Long.parseLong(request.getParameter("cardno")));
+			request.setAttribute("customer", c);
+			chain.doFilter(request, response);
+		}
+	}
+
+	/**
+	 * @see Filter#init(FilterConfig)
+	 */
+	public void init(FilterConfig fConfig) throws ServletException {
+		// TODO Auto-generated method stub
+	}
+
+}
+
+
